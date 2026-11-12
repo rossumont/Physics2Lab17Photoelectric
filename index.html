@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0B1A2B">
+<title>Photoelectric Effect</title>
+<style>
+:root{--bg:#0B1A2B;--ink:#EFE9DC;--muted:#8B98AA;--line:rgba(239,233,220,.15);--panel:rgba(255,255,255,.035);--g:#7FD4A8;--a:#E8B23A;
+--mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Courier New",monospace}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background-color:var(--bg);
+ background-image:linear-gradient(rgba(239,233,220,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(239,233,220,.035) 1px,transparent 1px);
+ background-size:32px 32px;color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Thai",Tahoma,sans-serif;
+ display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+.mono{font-family:var(--mono)}
+.hide{display:none!important}
+body:not(.teacher) .tonly{display:none!important}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px 8px;flex:none}
+header h1{margin:0;font-size:1.15rem;font-weight:700}
+header .sub{color:var(--muted);font-size:.82rem}
+.hb{display:flex;gap:8px;flex:none}
+.ob{border:1px solid var(--line);background:transparent;border-radius:8px;padding:6px 12px;font-size:.85rem}
+.ob:hover{border-color:var(--muted)}
+body.teacher #tBtn{border-color:var(--a);color:var(--a)}
+
+/* stage */
+#stage{flex:1;min-height:0;display:flex;gap:12px;padding:0 16px}
+#view{flex:1;min-width:0;min-height:0;position:relative;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.18);overflow:hidden}
+#app{position:absolute;inset:0;width:100%;height:100%;display:block}
+.read{position:absolute;left:14px;top:10px;display:flex;gap:22px;font-family:var(--mono);pointer-events:none}
+.read small{display:block;color:var(--muted);font-size:.7rem}
+.read b{font-size:1.55rem;font-weight:600}
+#rV{color:var(--a)} #rI{color:var(--g)}
+.linfo{position:absolute;right:14px;top:12px;font-family:var(--mono);font-size:.78rem;color:var(--muted);text-align:right;pointer-events:none}
+#noEm{color:var(--a)}
+#msg{position:absolute;left:14px;right:14px;bottom:10px;font-size:.85rem;min-height:1.2em;pointer-events:none}
+#msg.ok{color:var(--g)} #msg.warn{color:var(--a)}
+#side{width:330px;flex:none;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+.box{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px}
+.box h3{margin:0 0 6px;font-size:.78rem;font-family:var(--mono);color:var(--muted);font-weight:500;display:flex;align-items:center;gap:6px}
+.tbl{flex:1 1 auto;min-height:130px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.8rem}
+th,td{padding:4px 3px;text-align:center;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:500;position:sticky;top:0;background:#0d1e31}
+td input{width:66px;font:inherit;padding:3px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);text-align:center}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none}
+.inl{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.82rem;flex-wrap:wrap}
+.inl input{width:86px;font:inherit;padding:4px 6px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink)}
+#uRes{font-family:var(--mono);font-size:.85rem;color:var(--g);margin-top:6px;min-height:1.2em}
+canvas.plot{width:100%;height:210px;display:block}
+.res{font-family:var(--mono);font-size:.78rem;margin-top:6px;line-height:1.55}
+.ans{color:var(--g)}
+
+/* controls */
+.ctl{flex:none;padding:8px 16px 0;display:flex;flex-direction:column;gap:6px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;align-items:center;padding:2px 0}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:5px 11px;font-size:.82rem;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.chip.on{border-color:var(--g);color:var(--g)}
+.chip.part.on{border-color:var(--a);color:var(--a)}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.sep{flex:none;width:1px;height:20px;background:var(--line);margin:0 3px}
+.vrow{display:flex;align-items:center;gap:6px}
+.vrow input[type=range]{flex:1;min-width:80px;accent-color:#E8B23A}
+.vrow .lab{font-family:var(--mono);color:var(--muted);font-size:.85rem}
+
+/* bottom bar */
+footer{flex:none;padding:8px 16px calc(6px + env(safe-area-inset-bottom))}
+.bar{display:flex;align-items:center;gap:8px}
+.act{border:1.5px solid var(--g);background:rgba(127,212,168,.12);color:var(--g);border-radius:10px;padding:8px 16px;font-weight:600}
+.ic{border:1px solid var(--line);background:transparent;border-radius:10px;padding:8px 12px;font-family:var(--mono)}
+.sp{flex:1}
+.credit{color:var(--muted);font-size:.72rem;text-align:center;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+@media (orientation:portrait),(max-width:760px){#stage{flex-direction:column}#side{width:auto;flex:0 0 38%}}
+
+/* modals */
+.modal{position:fixed;inset:0;background:rgba(5,10,18,.75);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+.mbox{background:#102338;border:1px solid var(--line);border-radius:14px;padding:16px;width:100%;max-width:520px}
+.mbox h2{margin:0 0 10px;font-size:1rem}
+.mbox h4{margin:12px 0 4px;font-size:.88rem;color:var(--a)}
+.mbox .sec{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.mbox label{display:block;font-size:.8rem;color:var(--muted);margin:8px 0 3px}
+.mbox input[type=password],.mbox input[type=text],.mbox input[type=email]{width:100%;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.mbox .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.mbox ol{padding-left:20px;margin:4px 0;font-size:.9rem;line-height:1.55}
+.mbox p{font-size:.9rem;line-height:1.55;margin:4px 0}
+.note{font-size:.82rem;min-height:1.2em;margin-top:6px}
+.note.ok{color:var(--g)} .note.warn{color:var(--a)}
+.chk{display:flex;align-items:center;gap:8px;font-size:.88rem;margin:8px 0}
+
+/* worksheet */
+#wsWrap{position:fixed;inset:0;background:#fff;color:#111;z-index:60;overflow:auto;padding:16px}
+#wsWrap .tb{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
+#wsWrap .tb button{border:1px solid #888;background:#f3f3f3;color:#111;border-radius:8px;padding:6px 14px}
+.ws{max-width:820px;margin:0 auto;font-size:.95rem;line-height:1.5}
+.ws h2{text-align:center;font-size:1.25rem}
+.ws h3{font-size:1rem;margin:18px 0 6px;border-bottom:2px solid #2b6cb0;padding-bottom:2px}
+.ws .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin:8px 0}
+.ws .blank{display:inline-block;min-width:140px;border-bottom:1px dotted #111}
+.ws table{font-family:inherit;font-size:.9rem}
+.ws th,.ws td{border:1px solid #111;position:static;background:#fff;color:#111;height:28px}
+.grid{height:300px;border:1px solid #111;margin:6px 0;background-color:#fff;
+ background-image:linear-gradient(#cfd8e3 1px,transparent 1px),linear-gradient(90deg,#cfd8e3 1px,transparent 1px);background-size:20px 20px;
+ -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lines div{border-bottom:1px dotted #111;height:30px}
+.ws .credit{color:#555;white-space:normal}
+@media print{
+ html,body{height:auto;overflow:visible;background:#fff;display:block}
+ body>*:not(#wsWrap){display:none!important}
+ #wsWrap{position:static;overflow:visible;padding:0}
+ #wsWrap .tb{display:none}
+ .ws h3{break-after:avoid}.grid,.ws table{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <div><h1 id="ttl"></h1><div class="sub" id="sub"></div></div>
+  <div class="hb"><button class="ob" id="langBtn"></button><button class="ob" id="tBtn"></button></div>
+</header>
+
+<div id="stage">
+  <div id="view">
+    <canvas id="app"></canvas>
+    <div class="read">
+      <div><small>V</small><b id="rV">+0.00</b> V</div>
+      <div><small>I</small><b id="rI">0.00</b> nA</div>
+    </div>
+    <div class="linfo"><div id="noEm"></div></div>
+    <div id="msg"></div>
+  </div>
+
+  <div id="side">
+    <!-- Part 1 -->
+    <div class="box tonly" id="g1">
+      <canvas class="plot" id="plot1"></canvas>
+      <div class="res ans" id="a1"></div>
+    </div>
+    <!-- Part 2 -->
+    <div class="box" id="u2">
+      <div class="inl"><span id="lMyH"></span> h = <input type="number" step="any" id="uH" inputmode="decimal"> ×10⁻³⁴ J·s</div>
+      <div id="uRes"></div>
+    </div>
+    <div class="box tonly" id="g2">
+      <canvas class="plot" id="plot2"></canvas>
+      <div class="res" id="results"></div>
+      <div class="res ans" id="a2"></div>
+    </div>
+  </div>
+</div>
+
+<div class="ctl">
+  <div class="chips" id="chips"></div>
+  <div class="vrow">
+    <span class="lab">V</span>
+    <input type="range" id="vs" min="-3" max="3" step="0.01" value="0">
+    <button class="chip mono" data-dv="-0.1">−0.1</button>
+    <button class="chip mono" data-dv="-0.01">−0.01</button>
+    <button class="chip mono" data-dv="0.01">+0.01</button>
+    <button class="chip mono" data-dv="0.1">+0.1</button>
+    <button class="chip mono" id="v0">0</button>
+  </div>
+</div>
+
+<footer>
+  <div class="bar">
+    <button class="act" id="bRec"></button>
+    <button class="ic" id="bSweep"></button>
+    <button class="ic" id="bClr" title="clear">↺</button>
+    <span class="sp"></span>
+    <button class="ic" id="bCsv" title="CSV">⤓ CSV</button>
+  </div>
+  <div class="credit" id="credit"></div>
+</footer>
+
+<!-- help -->
+<div class="modal hide" id="hModal"><div class="mbox">
+  <h2 id="hT"></h2><div id="hBody"></div>
+  <div class="row"><button class="ob" data-close></button></div>
+</div></div>
+
+<!-- teacher -->
+<div class="modal hide" id="tModal"><div class="mbox">
+  <h2 id="tT"></h2>
+  <div id="tLogin">
+    <label id="lPw"></label>
+    <input type="password" id="pw" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <div class="row"><button class="act" id="pwOk"></button><button class="ob" data-close></button></div>
+    <div class="note warn" id="pwMsg"></div>
+    <div class="sec">
+      <button class="ob" id="chTog"></button>
+      <div id="chBox" class="hide">
+        <label id="lEm"></label><input type="email" id="em" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <label id="lAc"></label><input type="password" id="ac" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <label id="lN1"></label><input type="password" id="n1" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <label id="lN2"></label><input type="password" id="n2" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <div class="row"><button class="act" id="chSave"></button><button class="ob" id="chReset"></button></div>
+        <div class="note" id="chMsg"></div>
+      </div>
+    </div>
+  </div>
+  <div id="tPanel" class="hide">
+    <div class="note warn" id="lockNote"></div>
+    <label id="lCath"></label>
+    <div class="chips" id="metalTiles" style="flex-wrap:wrap"></div>
+    <div class="chk"><input type="checkbox" id="err"><span id="lErr"></span></div>
+    <div class="chk"><input type="checkbox" id="showG"><span id="lShow"></span></div>
+    <div class="mono ans" id="tPhi"></div>
+    <div class="sec">
+      <b id="lLink"></b>
+      <div class="note" id="lLinkN" style="color:var(--muted)"></div>
+      <div class="row"><button class="act" id="mkLink"></button></div>
+      <input type="text" id="linkOut" readonly style="margin-top:8px">
+      <div class="note" id="linkMsg"></div>
+    </div>
+    <div class="sec"><button class="act" id="openWS"></button></div>
+    <div class="sec row"><button class="ob" data-close></button><button class="ob" id="tOff"></button></div>
+  </div>
+</div></div>
+
+<!-- worksheet -->
+<div id="wsWrap" class="hide">
+  <div class="tb"><button id="wsPrint"></button><button id="wsClose"></button></div>
+  <div class="ws" id="ws"></div>
+</div>
+
+<script>
+/* ---------- constants ---------- */
+const H=6.62607015e-34, QE=1.602176634e-19, C=2.99792458e8;
+const FILTERS=[
+ {id:'red',lam:650,col:'#e03131'},{id:'orange',lam:600,col:'#f76707'},{id:'yellow',lam:578,col:'#f2c200'},
+ {id:'green',lam:530,col:'#2f9e44'},{id:'blue',lam:470,col:'#1c7ed6'},{id:'indigo',lam:440,col:'#5b4fe0'},{id:'violet',lam:405,col:'#a345c2'}];
+const METALS=[{n:'A',phi:1.50},{n:'B',phi:2.10},{n:'C',phi:2.30},{n:'D',phi:2.36}];
+const LEVELS=[1/3,2/3,1], LV=['I₁','2I₁','3I₁'], LCOL=['#7FD4A8','#E8B23A','#EFE9DC'];
+
+/* ---------- passwords ---------- */
+const DEFAULT_PW='9;5:4*5‘';
+const ACC_EMAIL='rossumont@gmail.com', ACC_PW='LhaMoAPL9545=';
+const PW_KEY='photoLab_pw';
+const norm=s=>String(s||'').normalize('NFKC').replace(/[‘’‚‛′`´]/g,"'").trim();
+function curPW(){try{return localStorage.getItem(PW_KEY)||DEFAULT_PW;}catch(e){return DEFAULT_PW;}}
+
+/* ---------- credit ---------- */
+const CREDIT_T={
+ en:'Asst.Prof.Dr. Rossumont Jaryabhand · Rajamangala University of Technology Tawan-ok, Uthenthawai Campus · No Right Reserved',
+ th:'ผศ.ดร.รสสุมนต์ จารยะพันธุ์ · มหาวิทยาลัยเทคโนโลยีราชมงคลตะวันออก อุเทนถวาย · ไม่สงวนลิขสิทธิ์'};
+
+/* ---------- text ---------- */
+const T={
+en:{title:'Photoelectric Effect',sub1:'Part 1 · Light intensity',sub2:'Part 2 · Stopping voltage & Planck constant',part1:'Part 1',part2:'Part 2',
+red:'Red',orange:'Orange',yellow:'Yellow',green:'Green',blue:'Blue',indigo:'Indigo',violet:'Violet',
+cath:'Cathode',anode:'Anode',supply:'Supply',lamp:'Lamp',noEmit:'no photoelectrons',
+rec:'● Record',recVs:'● Record Vs',sweep:'Sweep',myH:'Your',uErr:'error',uWait:'',
+helpT:'How to',stepsT:'Steps',theoryT:'Theory',qT:'Questions',ansT:'Answers',
+steps1:['Choose ONE color and keep it for the whole of Part 1.','Choose I₁. Set V between −3 V and +3 V and press Record at many voltages (or press Sweep).','Repeat with 2I₁ and 3I₁.','Plot I against V for the 3 intensities yourself. Compare the saturation current and the voltage where I becomes zero.'],
+steps2:['Choose a color (any intensity).','Make V more negative until the current JUST reads 0.00 nA. Use −0.01 / +0.01 for fine steps.','Press Record Vs.','Repeat for all 7 colors. Plot Vs against f yourself, find h and φ, then enter your h in the panel.'],
+theory:'<p>Each photon has energy <b>E = hf</b>. An electron leaves the metal only if hf &gt; φ (work function).</p><p><b>K<sub>max</sub> = hf − φ</b> and <b>eV<sub>s</sub> = K<sub>max</sub></b></p>',
+q1:['When the intensity increases, what happens to the saturation current?','Does the stopping voltage change with intensity?','What does this tell us about the energy of each photon?'],
+a1:['Saturation current increases in proportion to intensity: more photons per second → more electrons per second.','The stopping voltage is the SAME for all intensities.','K<sub>max</sub> depends only on frequency, not brightness. Each photon carries E = hf.'],
+a2:phi=>`Accepted h = 6.626 × 10⁻³⁴ J·s · φ = ${phi.toFixed(2)} eV`,
+recordedAt:i=>`Recorded · ${i}`,notZero:'Current is not zero yet — make V more negative.',posV:'V must be zero or negative.',
+recorded:(c,v)=>`Recorded · ${c} · Vs = ${v} V`,overshoot:'Recorded, but the current already stops at a less negative V — move closer to zero.',
+noEmitRec:c=>`${c} · Vs = 0 (no emission) — left out of the graph`,need2:'Record at least 2 colors.',
+colorChanged:'Color changed. Clear Part 1 data and start with the new color?',
+xI:'V (V)',yI:'I (nA)',xF:'f (×10¹⁴ Hz)',yF:'Vs (V)',hval:'h',f0:'f₀',phi:'φ',errp:'error',r2:'R²',excluded:'Vs = 0 points left out',
+tBtn:'Teacher',tT:'Teacher',pw:'Password',enter:'Enter',close:'Close',tOff:'Exit teacher mode',pwWrong:'Wrong password',
+chTog:'Change password',em:'Email',ac:'Account password',n1:'New password',n2:'Confirm new password',chSave:'Save',chReset:'Reset to default',
+pwSaved:'Password changed (saved in this browser).',pwResetOk:'Password reset to default.',pwBad:'Email or account password is incorrect.',pwMis:'New passwords do not match.',pwEmpty:'Enter a new password.',
+lCath:'Cathode',lErr:'Realistic measurement error',lShow:'Show graph & answers',phiT:p=>`φ = ${p.toFixed(2)} eV`,
+lLink:'Student link',lLinkN:'Locks the cathode and error setting above.',mkLink:'Create & copy link',copied:'Link copied',
+noHost:'Copy link works only when the app is on a website (e.g. GitHub Pages).',locked:'Opened from a student link — settings locked.',
+openWS:'Worksheet',print:'Print'},
+th:{title:'ปรากฏการณ์โฟโตอิเล็กทริก',sub1:'ตอนที่ 1 · ความเข้มแสง',sub2:'ตอนที่ 2 · ความต่างศักย์หยุดยั้งและค่าคงตัวของพลังค์',part1:'ตอนที่ 1',part2:'ตอนที่ 2',
+red:'แดง',orange:'ส้ม',yellow:'เหลือง',green:'เขียว',blue:'น้ำเงิน',indigo:'คราม',violet:'ม่วง',
+cath:'แคโทด',anode:'แอโนด',supply:'แหล่งจ่ายไฟ',lamp:'หลอดไฟ',noEmit:'ไม่มีโฟโตอิเล็กตรอน',
+rec:'● บันทึก',recVs:'● บันทึก Vs',sweep:'กวาดอัตโนมัติ',myH:'ค่าของฉัน',uErr:'คลาดเคลื่อน',uWait:'',
+helpT:'วิธีทดลอง',stepsT:'ขั้นตอน',theoryT:'ทฤษฎี',qT:'คำถาม',ansT:'เฉลย',
+steps1:['เลือกสี 1 สี และใช้สีเดิมตลอดตอนที่ 1','เลือก I₁ ปรับ V ระหว่าง −3 V ถึง +3 V แล้วกด บันทึก หลายๆ ค่า (หรือกด กวาดอัตโนมัติ)','ทำซ้ำที่ 2I₁ และ 3I₁','พล็อตกราฟ I กับ V ทั้ง 3 ความเข้มเอง เปรียบเทียบกระแสอิ่มตัว และค่า V ที่กระแสเป็นศูนย์'],
+steps2:['เลือกสี (ความเข้มเท่าไรก็ได้)','ปรับ V ให้ติดลบมากขึ้นจนกระแสอ่านได้ 0.00 nA “พอดี” ใช้ −0.01 / +0.01 ปรับละเอียด','กด บันทึก Vs','ทำให้ครบ 7 สี พล็อตกราฟ Vs กับ f เอง หาค่า h และ φ แล้วกรอกค่า h ในช่องด้านข้าง'],
+theory:'<p>โฟตอนแต่ละตัวมีพลังงาน <b>E = hf</b> อิเล็กตรอนหลุดจากโลหะได้เมื่อ hf &gt; φ (ฟังก์ชันงาน)</p><p><b>K<sub>max</sub> = hf − φ</b> และ <b>eV<sub>s</sub> = K<sub>max</sub></b></p>',
+q1:['เมื่อความเข้มแสงเพิ่มขึ้น กระแสอิ่มตัวเปลี่ยนไปอย่างไร','ความต่างศักย์หยุดยั้งเปลี่ยนตามความเข้มแสงหรือไม่','ผลนี้บอกอะไรเกี่ยวกับพลังงานของโฟตอนแต่ละตัว'],
+a1:['กระแสอิ่มตัวเพิ่มตามความเข้มแสง เพราะโฟตอนต่อวินาทีมากขึ้น → อิเล็กตรอนหลุดต่อวินาทีมากขึ้น','ความต่างศักย์หยุดยั้ง “เท่าเดิม” ทุกความเข้ม','K<sub>max</sub> ขึ้นกับความถี่เท่านั้น ไม่ขึ้นกับความสว่าง โฟตอนแต่ละตัวมี E = hf'],
+a2:phi=>`ค่ายอมรับ h = 6.626 × 10⁻³⁴ J·s · φ = ${phi.toFixed(2)} eV`,
+recordedAt:i=>`บันทึกแล้ว · ${i}`,notZero:'กระแสยังไม่เป็นศูนย์ ปรับ V ให้ติดลบมากขึ้น',posV:'V ต้องเป็นศูนย์หรือติดลบ',
+recorded:(c,v)=>`บันทึกแล้ว · ${c} · Vs = ${v} V`,overshoot:'บันทึกแล้ว แต่กระแสหยุดตั้งแต่ V ที่ติดลบน้อยกว่านี้ ลองปรับเข้าหาศูนย์',
+noEmitRec:c=>`${c} · Vs = 0 (ไม่มีอิเล็กตรอนหลุด) ไม่นำไปพล็อต`,need2:'บันทึกอย่างน้อย 2 สี',
+colorChanged:'เปลี่ยนสีแล้ว ล้างข้อมูลตอนที่ 1 แล้วเริ่มใหม่ด้วยสีนี้หรือไม่',
+xI:'V (V)',yI:'I (nA)',xF:'f (×10¹⁴ Hz)',yF:'Vs (V)',hval:'h',f0:'f₀',phi:'φ',errp:'คลาดเคลื่อน',r2:'R²',excluded:'จุด Vs = 0 ไม่นำมาคำนวณ',
+tBtn:'ครู',tT:'ส่วนของครู',pw:'รหัสผ่าน',enter:'เข้าสู่ระบบ',close:'ปิด',tOff:'ออกจากโหมดครู',pwWrong:'รหัสผ่านไม่ถูกต้อง',
+chTog:'เปลี่ยนรหัสผ่าน',em:'อีเมล',ac:'รหัสผ่านบัญชี',n1:'รหัสผ่านใหม่',n2:'ยืนยันรหัสผ่านใหม่',chSave:'บันทึก',chReset:'คืนค่าเริ่มต้น',
+pwSaved:'เปลี่ยนรหัสผ่านแล้ว (บันทึกในเบราว์เซอร์นี้)',pwResetOk:'คืนรหัสผ่านเริ่มต้นแล้ว',pwBad:'อีเมลหรือรหัสผ่านบัญชีไม่ถูกต้อง',pwMis:'รหัสผ่านใหม่ทั้งสองช่องไม่ตรงกัน',pwEmpty:'กรอกรหัสผ่านใหม่',
+lCath:'แคโทด',lErr:'ความคลาดเคลื่อนในการวัดแบบเหมือนจริง',lShow:'แสดงกราฟและเฉลย',phiT:p=>`φ = ${p.toFixed(2)} eV`,
+lLink:'ลิงก์สำหรับนักศึกษา',lLinkN:'ล็อกแคโทดและค่าความคลาดเคลื่อนตามที่ตั้งไว้ด้านบน',mkLink:'สร้างและคัดลอกลิงก์',copied:'คัดลอกลิงก์แล้ว',
+noHost:'คัดลอกลิงก์ได้เมื่อแอปอยู่บนเว็บไซต์ (เช่น GitHub Pages) เท่านั้น',locked:'เปิดจากลิงก์นักศึกษา: ค่าถูกล็อกตามลิงก์',
+openWS:'ใบทดลอง',print:'พิมพ์'}
+};
+
+/* ---------- worksheet ---------- */
+const WS={
+en:{title:'Lab Worksheet: Photoelectric Effect',f:['Name','Student ID','Section','Date'],
+obj:'Objectives',objL:['To study how light intensity affects the photocurrent and the stopping voltage.','To measure the stopping voltage for light of different frequencies, and use a graph to find Planck constant h and the work function φ of the cathode.'],
+eq:'Apparatus',eqT:'Light source, 7 color filters, phototube (cathode and anode), variable power supply, voltmeter, ammeter',
+p1:'Part 1: Effect of light intensity',p1T:'Filter color used: ____________   Cathode: ______',
+t1:'Table 1: Photocurrent at different voltages',t1h:['V (V)','I – I₁ (nA)','I – 2I₁ (nA)','I – 3I₁ (nA)'],
+g1:'Graph 1: Current I (nA) against voltage V (V) for the 3 intensities',
+q1:'Questions for Part 1',q1L:['When the light intensity increases, what happens to the saturation current? Why?','Does the stopping voltage change with intensity? What does this tell you?'],
+p2:'Part 2: Stopping voltage and frequency',p2T:'Cathode: ______',
+t2:'Table 2: Stopping voltage for each color',t2h:['Color','λ (nm)','f (×10¹⁴ Hz)','Vs (V)'],
+g2:'Graph 2: Stopping voltage Vs (V) against frequency f (×10¹⁴ Hz)',
+calc:'Calculation (show your working)',calcL:['Planck constant h =','Threshold frequency f₀ =','Work function φ =','% error of h (accepted value 6.626 × 10⁻³⁴ J·s) ='],
+q2:'Questions for Part 2',q2L:['Why may some colors give no photocurrent at all, even with high intensity?','What is the physical meaning of the point where your graph crosses the f-axis?','List possible sources of error in this experiment.'],
+con:'Conclusion'},
+th:{title:'ใบทดลอง: ปรากฏการณ์โฟโตอิเล็กทริก',f:['ชื่อ-สกุล','รหัสนักศึกษา','กลุ่มเรียน','วันที่'],
+obj:'จุดประสงค์',objL:['ศึกษาผลของความเข้มแสงต่อกระแสโฟโตอิเล็กตรอนและความต่างศักย์หยุดยั้ง','วัดความต่างศักย์หยุดยั้งของแสงความถี่ต่างๆ และใช้กราฟหาค่าคงตัวของพลังค์ h และฟังก์ชันงาน φ ของแคโทด'],
+eq:'อุปกรณ์',eqT:'แหล่งกำเนิดแสง แผ่นกรองแสง 7 สี หลอดโฟโตเซลล์ (แคโทดและแอโนด) แหล่งจ่ายไฟปรับค่าได้ โวลต์มิเตอร์ แอมมิเตอร์',
+p1:'ตอนที่ 1: ผลของความเข้มแสง',p1T:'สีแผ่นกรองแสงที่ใช้: ____________   แคโทด: ______',
+t1:'ตารางที่ 1: กระแสโฟโตอิเล็กตรอนที่ความต่างศักย์ต่างๆ',t1h:['V (V)','I – I₁ (nA)','I – 2I₁ (nA)','I – 3I₁ (nA)'],
+g1:'กราฟที่ 1: กระแส I (nA) กับความต่างศักย์ V (V) ของทั้ง 3 ความเข้ม',
+q1:'คำถามตอนที่ 1',q1L:['เมื่อความเข้มแสงเพิ่มขึ้น กระแสอิ่มตัวเปลี่ยนไปอย่างไร เพราะเหตุใด','ความต่างศักย์หยุดยั้งเปลี่ยนตามความเข้มแสงหรือไม่ ผลนี้บอกอะไร'],
+p2:'ตอนที่ 2: ความต่างศักย์หยุดยั้งกับความถี่',p2T:'แคโทด: ______',
+t2:'ตารางที่ 2: ความต่างศักย์หยุดยั้งของแสงแต่ละสี',t2h:['สี','λ (nm)','f (×10¹⁴ Hz)','Vs (V)'],
+g2:'กราฟที่ 2: ความต่างศักย์หยุดยั้ง Vs (V) กับความถี่ f (×10¹⁴ Hz)',
+calc:'การคำนวณ (แสดงวิธีทำ)',calcL:['ค่าคงตัวของพลังค์ h =','ความถี่ขีดเริ่ม f₀ =','ฟังก์ชันงาน φ =','ร้อยละความคลาดเคลื่อนของ h (ค่ายอมรับ 6.626 × 10⁻³⁴ J·s) ='],
+q2:'คำถามตอนที่ 2',q2L:['เพราะเหตุใดแสงบางสีจึงไม่ทำให้เกิดกระแสเลย แม้ความเข้มแสงสูง','จุดที่กราฟตัดแกน f มีความหมายทางฟิสิกส์อย่างไร','ระบุแหล่งที่มาของความคลาดเคลื่อนในการทดลองนี้'],
+con:'สรุปผลการทดลอง'}};
+function wsHTML(){
+ const w=WS[S.lang],lines=n=>'<div class="lines">'+'<div></div>'.repeat(n)+'</div>';
+ const ol=a=>'<ol>'+a.map(x=>`<li>${x}${lines(2)}</li>`).join('')+'</ol>';
+ return `<h2>${w.title}</h2>
+ <div class="fields">${w.f.map(x=>`<div>${x}: <span class="blank"></span></div>`).join('')}</div>
+ <h3>${w.obj}</h3><ol>${w.objL.map(x=>`<li>${x}</li>`).join('')}</ol>
+ <h3>${w.eq}</h3><p>${w.eqT}</p>
+ <h3>${w.p1}</h3><p>${w.p1T}</p>
+ <p><b>${w.t1}</b></p><table><thead><tr>${w.t1h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${'<tr><td></td><td></td><td></td><td></td></tr>'.repeat(14)}</tbody></table>
+ <p><b>${w.g1}</b></p><div class="grid"></div>
+ <p><b>${w.q1}</b></p>${ol(w.q1L)}
+ <h3>${w.p2}</h3><p>${w.p2T}</p>
+ <p><b>${w.t2}</b></p><table><thead><tr>${w.t2h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${FILTERS.map((f,i)=>`<tr><td>${cname(i)}</td><td>${f.lam}</td><td>${freq14(f.lam).toFixed(2)}</td><td></td></tr>`).join('')}</tbody></table>
+ <p><b>${w.g2}</b></p><div class="grid"></div>
+ <p><b>${w.calc}</b></p>${lines(5)}<ol>${w.calcL.map(x=>`<li>${x} <span class="blank" style="min-width:200px"></span></li>`).join('')}</ol>
+ <p><b>${w.q2}</b></p>${ol(w.q2L)}
+ <h3>${w.con}</h3>${lines(4)}
+ <div class="credit">${CREDIT_T[S.lang]}</div>`;
+}
+
+/* ---------- state ---------- */
+const KEY='photoLabV2';
+let S={lang:'en',part:1,metal:0,filter:4,level:2,V:0,err:false,show:false,p1color:null,p1:[[],[],[]],vs:['','','','','','',''],uH:'',off:FILTERS.map(()=>(Math.random()-0.5)*0.06)};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)S=Object.assign(S,s);}catch(e){}
+let teacher=false,LOCK=null;
+(function(){const k=new URLSearchParams(location.search).get('k');if(!k||k.length<12)return;
+ const c=parseInt(k.slice(-2),36);if(isNaN(c))return;const m=c%8,e=Math.floor(c/8)%2;
+ if(m<METALS.length){LOCK={metal:m,err:!!e};S.metal=m;S.err=!!e;}})();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const $=id=>document.getElementById(id);
+const t=k=>T[S.lang][k];
+const cname=i=>t(FILTERS[i].id);
+
+/* ---------- physics ---------- */
+const photonEV=lam=>H*C/(lam*1e-9)/QE;
+const freq14=lam=>C/(lam*1e-9)/1e14;
+function effVs(i){let v=photonEV(FILTERS[i].lam)-METALS[S.metal].phi;if(v<=0)return 0;if(S.err)v=Math.max(0.01,v+S.off[i]);return v;}
+function isat(i,lv){const q=0.35+0.65*(700-FILTERS[i].lam)/295;return 150*LEVELS[lv]*q;}
+function current(V,i,lv){const vs=effVs(i);if(vs<=0||V<=-vs)return 0;const Is=isat(i,lv);let g;
+ if(V<=0){const u=(V+vs)/vs;g=0.5*u*u;}else g=1-0.5*Math.exp(-2*V/vs);return Is*g;}
+function reading(V){let I=current(V,S.filter,S.level);if(S.err&&I>0)I*=1+(Math.random()-0.5)*0.01;return I;}
+
+/* ---------- build UI ---------- */
+function build(){
+ document.documentElement.lang=S.lang;
+ document.body.classList.toggle('teacher',teacher);
+ $('ttl').textContent=t('title');$('sub').textContent=t(S.part===1?'sub1':'sub2');
+ $('langBtn').textContent=S.lang==='en'?'ไทย':'EN';$('tBtn').textContent=t('tBtn');
+ let h=[1,2].map(p=>`<button class="chip part ${S.part===p?'on':''}" data-p="${p}">${t('part'+p)}</button>`).join('')+'<span class="sep"></span>';
+ h+=FILTERS.map((f,i)=>`<button class="chip ${i===S.filter?'on':''}" data-f="${i}"><span class="dot" style="background:${f.col}"></span>${cname(i)}</button>`).join('');
+ h+='<span class="sep"></span>'+[0,1,2].map(i=>`<button class="chip mono ${i===S.level?'on':''}" data-l="${i}">${LV[i]}</button>`).join('');
+ h+='<span class="sep"></span><button class="chip mono" data-help="1">?</button>';
+ $('chips').innerHTML=h;
+ $('bRec').textContent=t(S.part===1?'rec':'recVs');
+ $('bSweep').textContent=t('sweep');$('bSweep').classList.toggle('hide',S.part!==1);
+ $('g1').classList.toggle('hide',!(teacher&&S.show&&S.part===1));
+ $('g2').classList.toggle('hide',!(teacher&&S.show&&S.part===2));
+ $('u2').classList.toggle('hide',S.part!==2);
+ $('side').classList.toggle('hide',S.part===1&&!(teacher&&S.show));
+ $('lMyH').textContent=t('myH');$('uH').value=S.uH;
+ $('credit').textContent=CREDIT_T[S.lang];
+ fillModal();updateAll();
+}
+function fillModal(){
+ ['tT','chTog','chSave','chReset','mkLink','openWS','tOff'].forEach(k=>$(k).textContent=t(k));
+ $('lPw').textContent=t('pw');$('pwOk').textContent=t('enter');
+ $('lEm').textContent=t('em');$('lAc').textContent=t('ac');$('lN1').textContent=t('n1');$('lN2').textContent=t('n2');
+ document.querySelectorAll('[data-close]').forEach(b=>b.textContent=t('close'));
+ $('lCath').textContent=t('lCath');$('lErr').textContent=t('lErr');$('lShow').textContent=t('lShow');
+ $('lLink').textContent=t('lLink');$('lLinkN').textContent=t('lLinkN');
+ $('metalTiles').innerHTML=METALS.map((m,i)=>`<button class="chip ${i===S.metal?'on':''}" data-m="${i}" ${LOCK?'disabled':''}>${t('cath')} ${m.n}</button>`).join('');
+ $('err').checked=S.err;$('err').disabled=!!LOCK;$('showG').checked=S.show;
+ $('lockNote').textContent=LOCK?t('locked'):'';$('tPhi').textContent=t('phiT')(METALS[S.metal].phi);
+ $('wsPrint').textContent=t('print');$('wsClose').textContent=t('close');
+ if(!$('wsWrap').classList.contains('hide'))$('ws').innerHTML=wsHTML();
+}
+function userRes(){
+ const v=parseFloat(S.uH);
+ $('uRes').textContent=isFinite(v)?`${t('uErr')} = ${(Math.abs(v*1e-34-H)/H*100).toFixed(2)} %`:'';
+}
+function updateMeters(){
+ $('rV').textContent=(S.V<0?'−':'+')+Math.abs(S.V).toFixed(2);
+ $('rI').textContent=reading(S.V).toFixed(2);
+}
+function updateAll(){
+ $('vs').value=S.V;updateMeters();
+ $('noEm').textContent=effVs(S.filter)<=0?t('noEmit'):'';
+ userRes();drawP1();drawP2();save();
+}
+function msg(txt,cls){const m=$('msg');m.textContent=txt;m.className=cls||'';}
+
+/* ---------- events ---------- */
+$('langBtn').onclick=()=>{S.lang=S.lang==='en'?'th':'en';build();};
+$('chips').onclick=e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.p){S.part=+b.dataset.p;msg('');build();}
+ else if(b.dataset.f){S.filter=+b.dataset.f;build();}
+ else if(b.dataset.l){S.level=+b.dataset.l;build();}
+ else if(b.dataset.help)openHelp();
+};
+$('vs').oninput=e=>{S.V=+(+e.target.value).toFixed(2);updateAll();};
+document.querySelectorAll('[data-dv]').forEach(b=>b.onclick=()=>{S.V=Math.max(-3,Math.min(3,+(S.V+ +b.dataset.dv).toFixed(2)));updateAll();});
+$('v0').onclick=()=>{S.V=0;updateAll();};
+$('uH').oninput=e=>{S.uH=e.target.value;userRes();save();};
+
+/* record / sweep / clear */
+function checkColor1(){
+ const has=S.p1.some(a=>a.length);
+ if(has&&S.p1color!==null&&S.p1color!==S.filter){if(!confirm(t('colorChanged')))return false;S.p1=[[],[],[]];}
+ S.p1color=S.filter;return true;
+}
+function addPoint(lv,V,I){const a=S.p1[lv];const k=a.findIndex(p=>Math.abs(p[0]-V)<0.001);if(k>=0)a[k]=[V,I];else a.push([V,I]);a.sort((x,y)=>x[0]-y[0]);}
+$('bRec').onclick=()=>{
+ if(S.part===1){if(!checkColor1())return;addPoint(S.level,S.V,+reading(S.V).toFixed(2));msg(t('recordedAt')(LV[S.level]),'ok');updateAll();return;}
+ if(S.V>0){msg(t('posV'),'warn');return;}
+ const I=reading(S.V);
+ if(I>=0.005){msg(t('notZero'),'warn');return;}
+ if(S.V===0){S.vs[S.filter]='0.00';msg(t('noEmitRec')(cname(S.filter)),'warn');}
+ else{S.vs[S.filter]=(-S.V).toFixed(2);
+  if(current(S.V+0.03,S.filter,S.level)<0.005)msg(t('overshoot'),'warn');
+  else msg(t('recorded')(cname(S.filter),(-S.V).toFixed(2)),'ok');}
+ updateAll();
+};
+$('bSweep').onclick=()=>{if(!checkColor1())return;S.p1[S.level]=[];for(let v=-3;v<=3.0001;v+=0.2){const V=+v.toFixed(2);addPoint(S.level,V,+reading(V).toFixed(2));}msg(t('recordedAt')(LV[S.level]),'ok');updateAll();};
+$('bClr').onclick=()=>{
+ if(S.part===1){S.p1=[[],[],[]];S.p1color=null;}else{S.vs=S.vs.map(()=>'');}
+ msg('');updateAll();
+};
+
+/* help */
+function openHelp(){
+ const ol=a=>'<ol>'+a.map(x=>`<li>${x}</li>`).join('')+'</ol>';
+ let h=`<h4>${t('stepsT')}</h4>`+ol(t(S.part===1?'steps1':'steps2'))+`<h4>${t('theoryT')}</h4>`+t('theory');
+ if(S.part===1){h+=`<h4>${t('qT')}</h4>`+ol(t('q1'));if(teacher)h+=`<h4>${t('ansT')}</h4><div class="ans">`+ol(t('a1'))+'</div>';}
+ else if(teacher)h+=`<h4>${t('ansT')}</h4><p class="ans">${t('a2')(METALS[S.metal].phi)}</p>`;
+ $('hT').textContent=t('helpT');$('hBody').innerHTML=h;$('hModal').classList.remove('hide');
+}
+
+/* modals */
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('.modal').classList.add('hide'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>m.classList.add('hide'));});
+function openT(){
+ $('tModal').classList.remove('hide');$('tLogin').classList.toggle('hide',teacher);$('tPanel').classList.toggle('hide',!teacher);
+ $('pwMsg').textContent='';$('pw').value='';$('chMsg').textContent='';$('linkMsg').textContent='';
+ if(!teacher)setTimeout(()=>$('pw').focus(),50);
+}
+$('tBtn').onclick=openT;
+function login(){if(norm($('pw').value)===norm(curPW())){teacher=true;build();openT();}else $('pwMsg').textContent=t('pwWrong');}
+$('pwOk').onclick=login;$('pw').onkeydown=e=>{if(e.key==='Enter')login();};
+$('tOff').onclick=()=>{teacher=false;$('tModal').classList.add('hide');build();};
+$('chTog').onclick=()=>$('chBox').classList.toggle('hide');
+function accOk(){return norm($('em').value).toLowerCase()===ACC_EMAIL&&norm($('ac').value)===norm(ACC_PW);}
+function chNote(k,ok){$('chMsg').textContent=t(k);$('chMsg').className='note '+(ok?'ok':'warn');}
+$('chSave').onclick=()=>{
+ if(!accOk())return chNote('pwBad');
+ const a=$('n1').value,b=$('n2').value;
+ if(!a.trim())return chNote('pwEmpty');
+ if(a!==b)return chNote('pwMis');
+ try{localStorage.setItem(PW_KEY,a);}catch(e){}
+ ['ac','n1','n2'].forEach(id=>$(id).value='');chNote('pwSaved',true);
+};
+$('chReset').onclick=()=>{
+ if(!accOk())return chNote('pwBad');
+ try{localStorage.removeItem(PW_KEY);}catch(e){}
+ ['ac','n1','n2'].forEach(id=>$(id).value='');chNote('pwResetOk',true);
+};
+$('metalTiles').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||LOCK)return;S.metal=+b.dataset.m;build();};
+$('err').onchange=e=>{if(LOCK)return;S.err=e.target.checked;updateAll();};
+$('showG').onchange=e=>{S.show=e.target.checked;build();};
+$('mkLink').onclick=()=>{
+ let r='';for(let i=0;i<10;i++)r+=Math.floor(Math.random()*36).toString(36);
+ const c=(S.metal+8*(S.err?1:0)+16*Math.floor(Math.random()*50)).toString(36).padStart(2,'0');
+ const url=location.origin+location.pathname+'?k='+r+c;$('linkOut').value=url;
+ if(!/^https?:/.test(location.protocol)||location.origin==='null'){$('linkMsg').textContent=t('noHost');$('linkMsg').className='note warn';return;}
+ (navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(()=>{$('linkMsg').textContent=t('copied');$('linkMsg').className='note ok';},()=>{$('linkOut').select();});
+};
+$('openWS').onclick=()=>{$('tModal').classList.add('hide');$('ws').innerHTML=wsHTML();$('wsWrap').classList.remove('hide');$('wsWrap').scrollTop=0;};
+$('wsClose').onclick=()=>$('wsWrap').classList.add('hide');
+$('wsPrint').onclick=()=>window.print();
+
+/* ---------- plotting ---------- */
+function nice(range,n){const raw=range/n,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;return(f<1.5?1:f<3?2:f<7?5:10)*p;}
+function plot(cv,o){
+ const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;
+ cv.width=w*dpr;cv.height=h*dpr;const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);
+ const ink='#EFE9DC',muted='#8B98AA',line='rgba(239,233,220,.12)';
+ const L=46,R=8,Tp=8,B=34,pw=w-L-R,ph=h-Tp-B;
+ const X=x=>L+(x-o.xmin)/(o.xmax-o.xmin)*pw,Y=y=>Tp+(o.ymax-y)/(o.ymax-o.ymin)*ph;
+ g.font='10px ui-monospace,Menlo,Consolas,monospace';g.lineWidth=1;
+ const sx=nice(o.xmax-o.xmin,6),sy=nice(o.ymax-o.ymin,5);
+ g.textAlign='center';g.textBaseline='top';
+ for(let x=Math.ceil(o.xmin/sx)*sx;x<=o.xmax+1e-9;x+=sx){g.strokeStyle=line;g.beginPath();g.moveTo(X(x),Tp);g.lineTo(X(x),Tp+ph);g.stroke();g.fillStyle=muted;g.fillText(+x.toFixed(3),X(x),Tp+ph+3);}
+ g.textAlign='right';g.textBaseline='middle';
+ for(let y=Math.ceil(o.ymin/sy)*sy;y<=o.ymax+1e-9;y+=sy){g.strokeStyle=line;g.beginPath();g.moveTo(L,Y(y));g.lineTo(L+pw,Y(y));g.stroke();g.fillStyle=muted;g.fillText(+y.toFixed(3),L-4,Y(y));}
+ g.strokeStyle=muted;g.lineWidth=1.2;
+ if(o.xmin<=0&&o.xmax>=0){g.beginPath();g.moveTo(X(0),Tp);g.lineTo(X(0),Tp+ph);g.stroke();}
+ if(o.ymin<=0&&o.ymax>=0){g.beginPath();g.moveTo(L,Y(0));g.lineTo(L+pw,Y(0));g.stroke();}
+ g.fillStyle=ink;g.textAlign='center';g.textBaseline='bottom';g.fillText(o.xl,L+pw/2,h-1);
+ g.save();g.translate(10,Tp+ph/2);g.rotate(-Math.PI/2);g.textBaseline='middle';g.fillText(o.yl,0,0);g.restore();
+ g.save();g.beginPath();g.rect(L,Tp,pw,ph);g.clip();
+ o.series.forEach(s=>{
+  if(s.line&&s.pts.length>1){g.strokeStyle=s.color;g.lineWidth=2;g.setLineDash(s.dash||[]);g.beginPath();s.pts.forEach((p,k)=>k?g.lineTo(X(p[0]),Y(p[1])):g.moveTo(X(p[0]),Y(p[1])));g.stroke();g.setLineDash([]);}
+  if(s.dots)s.pts.forEach(p=>{g.fillStyle=p[2]||s.color;g.beginPath();g.arc(X(p[0]),Y(p[1]),s.r||3,0,7);g.fill();});
+ });
+ g.restore();
+}
+function drawP1(){
+ if(!(teacher&&S.show&&S.part===1))return;
+ const all=S.p1.flat();let ymax=10;all.forEach(p=>ymax=Math.max(ymax,p[1]*1.1));
+ plot($('plot1'),{xmin:-3,xmax:3,ymin:0,ymax,xl:t('xI'),yl:t('yI'),
+  series:S.p1.map((a,i)=>({pts:a,color:LCOL[i],line:true,dots:a.length<70,r:2.5}))});
+ $('a1').innerHTML=LV.map((l,i)=>`<span style="color:${LCOL[i]}">● ${l}</span>`).join('  ');
+}
+function fit(){
+ const pts=[];FILTERS.forEach((f,i)=>{const v=parseFloat(S.vs[i]);if(isFinite(v)&&v>0)pts.push([freq14(f.lam),v,f.col]);});
+ if(pts.length<2)return{pts};
+ const n=pts.length;let sx=0,sy=0,sxx=0,sxy=0,syy=0;pts.forEach(p=>{sx+=p[0];sy+=p[1];sxx+=p[0]*p[0];sxy+=p[0]*p[1];syy+=p[1]*p[1];});
+ const den=n*sxx-sx*sx;if(!den)return{pts};
+ const m=(n*sxy-sx*sy)/den,b=(sy-m*sx)/n;
+ const r=(n*sxy-sx*sy)/Math.sqrt(den*(n*syy-sy*sy));
+ return{pts,m,b,r2:r*r};
+}
+function drawP2(){
+ if(!(teacher&&S.show&&S.part===2))return;
+ const F=fit();let ymax=1,ymin=0;F.pts.forEach(p=>ymax=Math.max(ymax,p[1]+0.3));
+ const series=[{pts:F.pts,color:'#EFE9DC',dots:true,r:5}];
+ const zeros=S.vs.some(v=>parseFloat(v)===0);
+ if(F.m!==undefined){
+  ymin=Math.min(0,F.b)-0.2;const f0=-F.b/F.m;
+  series.unshift({pts:[[0,F.b],[Math.max(0,f0),Math.max(0,f0)*F.m+F.b]],color:'#8B98AA',line:true,dash:[5,4]});
+  series.unshift({pts:[[Math.max(0,f0),Math.max(0,f0)*F.m+F.b],[8,8*F.m+F.b]],color:'#7FD4A8',line:true});
+  const h=F.m/1e14*QE,phi=-F.b,err=Math.abs(h-H)/H*100;
+  $('results').innerHTML=`<div><b>${t('hval')} = ${(h/1e-34).toFixed(3)} × 10⁻³⁴ J·s</b></div>
+   <div>${t('f0')} = ${f0.toFixed(2)} × 10¹⁴ Hz</div><div>${t('phi')} = ${phi.toFixed(2)} eV</div>
+   <div>${t('errp')} = ${err.toFixed(2)} %</div><div>${t('r2')} = ${F.r2.toFixed(4)}</div>${zeros?`<div style="color:#8B98AA">${t('excluded')}</div>`:''}`;
+ }else $('results').textContent=t('need2');
+ plot($('plot2'),{xmin:0,xmax:8,ymin,ymax,xl:t('xF'),yl:t('yF'),series});
+ $('a2').textContent=t('a2')(METALS[S.metal].phi);
+}
+
+/* ---------- apparatus animation ---------- */
+let electrons=[],last=performance.now(),spawnAcc=0;
+function hexA(hex,a){const n=parseInt(hex.slice(1),16);return`rgba(${n>>16},${(n>>8)&255},${n&255},${a})`;}
+const CX=340,CY=110,CR=55,AX=500;
+function cathX(y){return CX-Math.sqrt(Math.max(0,CR*CR-(y-CY)*(y-CY)));}
+function frame(now){
+ const dt=Math.min(0.05,(now-last)/1000);last=now;
+ const cv=$('app'),dpr=window.devicePixelRatio||1,w=cv.clientWidth,hh=cv.clientHeight;
+ if(w&&hh){
+  const W=Math.round(w*dpr),Hh=Math.round(hh*dpr);if(cv.width!==W||cv.height!==Hh){cv.width=W;cv.height=Hh;}
+  const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,Hh);
+  const top=58,bot=30,sc=Math.max(0.2,Math.min(w/600,(hh-top-bot)/300)),ox=(w-600*sc)/2,oy=top+Math.max(0,(hh-top-bot)-300*sc)/2;
+  g.setTransform(dpr*sc,0,0,dpr*sc,dpr*ox,dpr*oy);
+  const ink='#EFE9DC',muted='#8B98AA',f=FILTERS[S.filter],al=[0.2,0.35,0.55][S.level];
+  // beams
+  g.fillStyle=`rgba(255,240,190,${al})`;g.beginPath();g.moveTo(62,100);g.lineTo(128,82);g.lineTo(128,138);g.lineTo(62,120);g.fill();
+  g.fillStyle=hexA(f.col,al+0.1);g.beginPath();g.moveTo(140,82);g.lineTo(292,62);g.lineTo(292,158);g.lineTo(140,138);g.fill();
+  // lamp
+  const rg=g.createRadialGradient(48,110,2,48,110,26);rg.addColorStop(0,'#fff9db');rg.addColorStop(1,'rgba(255,212,59,0.1)');
+  g.fillStyle=rg;g.beginPath();g.arc(48,110,26,0,7);g.fill();g.strokeStyle=muted;g.lineWidth=2;g.beginPath();g.arc(48,110,16,0,7);g.stroke();
+  // filter
+  g.fillStyle=f.col;g.fillRect(128,72,12,76);
+  // tube
+  g.strokeStyle=muted;g.lineWidth=2;g.fillStyle='rgba(140,170,255,0.07)';
+  g.beginPath();if(g.roundRect)g.roundRect(240,35,300,150,45);else g.rect(240,35,300,150);g.fill();g.stroke();
+  // cathode & anode
+  g.strokeStyle='#9aa4b0';g.lineWidth=7;g.beginPath();g.arc(CX,CY,CR,Math.PI-0.95,Math.PI+0.95);g.stroke();
+  g.strokeStyle='#c3cad3';g.lineWidth=5;g.beginPath();g.moveTo(AX,65);g.lineTo(AX,155);g.stroke();
+  // wires & supply
+  g.strokeStyle='rgba(239,233,220,.6)';g.lineWidth=1.5;g.beginPath();g.moveTo(cathX(155),155);g.lineTo(cathX(155),265);g.lineTo(350,265);g.moveTo(AX,155);g.lineTo(AX,265);g.lineTo(430,265);g.stroke();
+  g.fillStyle='#0B1A2B';g.strokeStyle=ink;g.lineWidth=1.2;g.fillRect(345,246,90,38);g.strokeRect(345,246,90,38);
+  g.textAlign='center';g.textBaseline='middle';
+  g.fillStyle=muted;g.font='10px ui-monospace,Menlo,Consolas,monospace';g.fillText(t('supply'),390,256);
+  g.fillStyle='#E8B23A';g.font='bold 13px ui-monospace,Menlo,Consolas,monospace';g.fillText((S.V<0?'−':'+')+Math.abs(S.V).toFixed(2)+' V',390,272);
+  g.fillStyle=muted;g.font='11px ui-monospace,Menlo,Consolas,monospace';
+  g.fillText(t('cath')+(S.V<0?' (+)':' (−)'),cathX(155)-14,205);g.fillText(t('anode')+(S.V<0?' (−)':' (+)'),AX+8,205);
+  g.fillText(t('lamp'),48,150);
+  // electrons
+  const vs=effVs(S.filter);
+  if(vs>0){spawnAcc+=dt*70*isat(S.filter,S.level)/150;
+   while(spawnAcc>=1&&electrons.length<350){spawnAcc--;const y=CY+(Math.random()*2-1)*42;electrons.push({y,s:0,k:vs*Math.random(),d:1});}
+  }else spawnAcc=0;
+  g.fillStyle='#7FD4A8';
+  electrons=electrons.filter(e=>{
+   const KE=e.k+S.V*e.s;
+   if(e.d>0&&KE<=0)e.d=-1;
+   e.s+=e.d*(0.05+0.55*Math.sqrt(Math.max(KE,0)))*dt;
+   if(e.s<0||e.s>1)return false;
+   const x0=cathX(e.y)+4,x=x0+e.s*(AX-3-x0);
+   g.beginPath();g.arc(x,e.y,2.6,0,7);g.fill();return true;
+  });
+ }
+ requestAnimationFrame(frame);
+}
+setInterval(()=>{if(S.err)updateMeters();},300);
+window.addEventListener('resize',()=>{drawP1();drawP2();});
+
+/* ---------- CSV ---------- */
+$('bCsv').onclick=()=>{
+ let s='Part 1,filter,'+(S.p1color!==null?FILTERS[S.p1color].id:'')+'\nintensity,V (V),I (nA)\n';
+ S.p1.forEach((a,i)=>a.forEach(p=>s+=`${['I1','2I1','3I1'][i]},${p[0]},${p[1]}\n`));
+ s+='\nPart 2\ncolor,lambda (nm),f (1e14 Hz),Vs (V)\n';
+ FILTERS.forEach((f,i)=>s+=`${f.id},${f.lam},${freq14(f.lam).toFixed(3)},${S.vs[i]}\n`);
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+s],{type:'text/csv'}));a.download='photoelectric-data.csv';a.click();
+};
+
+build();requestAnimationFrame(frame);
+</script>
+</body>
+</html>
